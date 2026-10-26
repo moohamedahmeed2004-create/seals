@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة الموظفين والرواتب</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+
+    <nav class="sidebar-nav">
+        <h2>نظام المكتب</h2>
+        <ul>
+            <li><a href="index.html"><i class="fas fa-chart-line"></i> الرئيسية</a></li>
+            <li><a href="employees.html" class="active"><i class="fas fa-users"></i> الموظفين والرواتب</a></li>
+        </ul>
+    </nav>
+
+    <div class="main-content">
+        <div class="top-bar flex-between">
+            <h2>جدول الرواتب والإجراءات المالية</h2>
+            <button class="btn-primary" onclick="openEmpModal()"><i class="fas fa-user-plus"></i> إضافة موظف جديد</button>
+        </div>
+
+        <div class="table-container full-width">
+            <table>
+                <thead>
+                    <tr>
+                        <th>اسم السيلز</th>
+                        <th>الراتب الأساسي</th>
+                        <th>السلف</th>
+                        <th>الخصومات</th>
+                        <th>إجمالي العمولات</th>
+                        <th>صافي القبض المستحق</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="employeesTable"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- نافذة إضافة سلفة أو خصم -->
+    <div id="actionModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeActionModal()">&times;</span>
+            <h2 id="actionModalTitle">تسجيل سلفة / خصم</h2>
+            <form id="actionForm">
+                <input type="hidden" id="actionEmpId">
+                <input type="hidden" id="actionType">
+                
+                <div class="form-group">
+                    <label>المبلغ (ج.م):</label>
+                    <input type="number" id="actionAmount" required placeholder="أدخل المبلغ">
+                </div>
+
+                <div class="form-group">
+                    <label>السبب / ملحوظة:</label>
+                    <input type="text" id="actionNote" required placeholder="مثال: سلفة شخصية، تأخير...">
+                </div>
+
+                <button type="submit" class="btn-submit">حفظ الإجراء</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- نافذة عرض سجل السُلف والخصومات للموظف -->
+    <div id="historyModal" class="modal">
+        <div class="modal-content" style="width: 550px;">
+            <span class="close-btn" onclick="closeHistoryModal()">&times;</span>
+            <h2 id="historyEmpName">سجل الموظف</h2>
+            <br>
+            <div class="table-container" style="max-height: 350px; overflow-y: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>النوع</th>
+                            <th>المبلغ</th>
+                            <th>السبب / ملحوظة</th>
+                            <th>التاريخ والوقت</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة إضافة موظف -->
+    <div id="empModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeEmpModal()">&times;</span>
+            <h2>إضافة موظف جديد</h2>
+            <form id="empForm">
+                <div class="form-group">
+                    <label>اسم الموظف:</label>
+                    <input type="text" id="empName" required>
+                </div>
+                <div class="form-group">
+                    <label>الراتب الأساسي:</label>
+                    <input type="number" id="empSalary" required>
+                </div>
+                <button type="submit" class="btn-submit">حفظ الموظف</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

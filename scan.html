@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الحضور - Moka System</title>
+    <style>
+        body {
+            background-color: #0b132b;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .card {
+            background: #1c2541;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        h2 {
+            margin-bottom: 20px;
+            color: #6fffe9;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            text-align: right;
+        }
+        select, button {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            border: 1px solid #48bfe3;
+            background: #0b132b;
+            color: #fff;
+            font-size: 16px;
+        }
+        button {
+            background: #5390d9;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        button:hover {
+            background: #4ea8de;
+        }
+        #result {
+            margin-top: 15px;
+            font-size: 15px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>تسجيل حضور السيلز</h2>
+        
+        <form id="attendanceForm">
+            <label for="salesName">اختر اسم السيلز:</label>
+            <select id="salesName" required>
+                <option value="" disabled selected>-- اختر اسمك --</option>
+                <option value="أحمد">أحمد</option>
+                <option value="محمد">محمد</option>
+            </select>
+
+            <button type="submit" id="submitBtn">تسجيل الحضور الآن</button>
+        </form>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        document.getElementById('attendanceForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('salesName').value;
+            const now = new Date();
+            
+            // حساب الوقت الحالي (ساعات ودقائق) للمقارنة
+            const currentHours = now.getHours();
+            const currentMinutes = now.getMinutes();
+            const currentTimeInMinutes = currentHours * 60 + currentMinutes;
+
+            // تحديد فترة الحضور الرسمية من 12:00 ظهراً إلى 12:30 ظهراً
+            const startTime = 12 * 60;       // 12:00 PM
+            const deadlineTime = 12 * 60 + 30; // 12:30 PM
+
+            let statusMessage = "";
+            let isLate = false;
+
+            if (currentTimeInMinutes > deadlineTime) {
+                isLate = true;
+                statusMessage = `⚠️ تم تسجيل الحضور متأخراً (بعد 12:30)! تم تطبيق خصم نص يوم تلقائياً.`;
+            } else {
+                statusMessage = `✅ تم تسجيل حضورك في الميعاد بنجاح يا ${name}!`;
+            }
+
+            const timeFormatted = `${now.toLocaleDateString('ar-EG')} - ${now.toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'})}`;
+
+            // حفظ السجل في LocalStorage للوحة التحكم الرئيسية
+            let officeScans = JSON.parse(localStorage.getItem('office_scans')) || [];
+            officeScans.unshift({
+                salesName: name,
+                dateFormatted: timeFormatted,
+                status: isLate ? 'متأخر (خصم نص يوم)' : 'في الميعاد'
+            });
+            localStorage.setItem('office_scans', JSON.stringify(officeScans));
+
+            // لو متأخر، نقوم بإضافة "خصم نص يوم" تلقائياً لملف الموظف المالي (نصف يوم يُمثل نصف الراتب اليومي أو حسب تقديرك، هنا سنخصم قيمة مقدرة أو نحددها في سجل الموظف)
+            if (isLate) {
+                let employees = JSON.parse(localStorage.getItem('office_employees')) || [];
+                let emp = employees.find(e => e.name === name);
+                if (emp) {
+                    if (!emp.history) emp.history = [];
+                    // حساب خصم نص يوم (افتراضاً الراتب الأساسي مقسوم على 30 يوم ثم على 2، أو مبلغ ثابت كخصم تأخير)
+                    const halfDayDeduction = Math.round((emp.salary / 30) / 2);
+                    emp.history.unshift({
+                        type: 'خصم',
+                        amount: halfDayDeduction,
+                        note: 'تأخير عن موعد الحضور (بعد 12:30)',
+                        dateFormatted: timeFormatted
+                    });
+                    localStorage.setItem('office_employees', JSON.stringify(employees));
+                }
+            }
+
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.color = isLate ? '#f87171' : '#4ade80';
+            resultDiv.innerText = statusMessage;
+            
+            // تعطيل الفورم لمنع التكرار
+            document.getElementById('attendanceForm').reset();
+            document.getElementById('submitBtn').disabled = true;
+            document.getElementById('submitBtn').style.opacity = '0.5';
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="URL">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة المكتب - لوحة التحكم</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- مكتبة توليد QR Code تلقائياً -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+
+    <nav class="sidebar-nav">
+        <h2>نظام المكتب</h2>
+        <ul>
+            <li><a href="index.html" class="active"><i class="fas fa-chart-line"></i> الرئيسية</a></li>
+            <li><a href="employees.html"><i class="fas fa-users"></i> الموظفين والرواتب</a></li>
+        </ul>
+    </nav>
+
+    <div class="main-content">
+        <div class="top-bar flex-between">
+            <button class="btn-primary" onclick="openModal()"><i class="fas fa-plus-circle"></i> إضافة سحبة جديدة</button>
+            <button class="btn-primary" style="background: #0284c7;" onclick="openQrModal()"><i class="fas fa-qrcode"></i> إظهار QR Code للحضور</button>
+        </div>
+
+        <!-- الكروت الأربعة -->
+        <div class="stats-grid">
+            <div class="stat-card card-yellow">
+                <i class="fas fa-wallet icon"></i>
+                <div class="info">
+                    <h3>مبلغ اليوم</h3>
+                    <p id="todayAmount">0 ج.م</p>
+                </div>
+            </div>
+            <div class="stat-card card-white">
+                <i class="fas fa-coins icon"></i>
+                <div class="info">
+                    <h3>مبلغ الشهر</h3>
+                    <p id="monthAmount">0 ج.م</p>
+                </div>
+            </div>
+            <div class="stat-card card-blue">
+                <i class="fas fa-receipt icon"></i>
+                <div class="info">
+                    <h3>عمليات اليوم</h3>
+                    <p id="todayCount">0</p>
+                </div>
+            </div>
+            <div class="stat-card card-pink">
+                <i class="fas fa-chart-pie icon"></i>
+                <div class="info">
+                    <h3>عمليات الشهر</h3>
+                    <p id="monthCount">0</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-body">
+            <div class="table-container">
+                <h3><i class="fas fa-history"></i> سجل المعاملات الأخيرة</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>اسم السيلز</th>
+                            <th>نوع الحركة</th>
+                            <th>التطبيق / الجهة</th>
+                            <th>المبلغ الأصلي</th>
+                            <th>النسبة</th>
+                            <th>عمولة السيلز</th>
+                            <th>التاريخ والوقت</th>
+                            <th>إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactionsTable"></tbody>
+                </table>
+
+                <br><br>
+               <!-- جدول سجل الحضور عبر الـ QR -->
+<h3><i class="fas fa-clipboard-user"></i> سجل حضور السيلز (عبر QR Code)</h3>
+<table>
+    <thead>
+        <tr>
+            <th>اسم السيلز</th>
+            <th>وقت التسجيل</th>
+            <th>الحالة</th>
+        </tr>
+    </thead>
+    <tbody id="scanLogTable"></tbody>
+</table>
+            </div>
+
+            <div class="sales-sidebar">
+                <h3><i class="fas fa-user-tie"></i> قائمة السيلز</h3>
+                <ul id="salesList"></ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة عرض الـ QR Code -->
+    <div id="qrModal" class="modal">
+        <div class="modal-content" style="text-align: center; width: 350px;">
+            <span class="close-btn" onclick="closeQrModal()">&times;</span>
+            <h3 style="margin-bottom: 20px; color: #38bdf8;">امسح الكود بكاميرا هاتفك</h3>
+            <div id="qrcode" style="display: flex; justify-content: center; background: white; padding: 15px; border-radius: 8px;"></div>
+            <p style="margin-top: 15px; font-size: 0.9rem; color: #94a3b8;">سيتم فتح صفحة اختيار الاسم وتسجيل الوقت فوراً</p>
+        </div>
+    </div>
+
+    <!-- نافذة إضافة سحبة -->
+    <div id="transactionModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">إضافة عملية سحب / تمويل</h2>
+            <form id="transactionForm">
+                <input type="hidden" id="editIndex" value="-1">
+                <div class="form-group">
+                    <label>اختر السيلز:</label>
+                    <select id="salesSelect" required></select>
+                </div>
+
+                <div class="form-group">
+                    <label>نوع الحركة:</label>
+                    <select id="typeSelect" onchange="handleTypeChange()" required>
+                        <option value="">اختر النوع</option>
+                        <option value="ابليكشن">ابليكشن</option>
+                        <option value="تمويل">تمويل</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="appGroup" style="display: none;">
+                    <label>اسم التطبيق:</label>
+                    <select id="appSelect" onchange="handleAppChange()">
+                        <option value="valU">valU</option>
+                        <option value="tru">tru</option>
+                        <option value="other">أخرى...</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="customAppGroup" style="display: none;">
+                    <label>اسم التطبيق الجديد:</label>
+                    <input type="text" id="customAppName" placeholder="أدخل اسم التطبيق">
+                </div>
+
+                <div class="form-group">
+                    <label>المبلغ (ج.م):</label>
+                    <input type="number" id="amountInput" oninput="calculateCommission()" placeholder="مثال: 10000" required>
+                </div>
+
+                <div class="form-group">
+                    <label>نسبة السيلز (%):</label>
+                    <input type="number" step="0.1" id="rateInput" oninput="calculateCommission()" placeholder="مثال: 2" required>
+                </div>
+
+                <div class="form-group highlight-box">
+                    <label>عمولة السيلز المحسوبة:</label>
+                    <span id="calculatedCommission">0 ج.م</span>
+                </div>
+
+                <button type="submit" class="btn-submit" id="submitBtnText">حفظ العملية</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // توليد الـ QR Code تلقائياً عند فتح النافذة بناءً على رابط صفحة الـ scan.html الحالية
+        let qrGenerated = false;
+        function openQrModal() {
+            document.getElementById('qrModal').style.display = 'flex';
+            if (!qrGenerated) {
+                const scanUrl = window.location.href.replace('index.html', 'scan.html');
+                new QRCode(document.getElementById("qrcode"), {
+                    text: scanUrl,
+                    width: 200,
+                    height: 200
+                });
+                qrGenerated = true;
+            }
+        }
+        function closeQrModal() {
+            document.getElementById('qrModal').style.display = 'none';
+        }
+
+        // تحديث جدول حضور السيلز في الصفحة الرئيسية
+        function renderScanLogs() {
+            const tableBody = document.getElementById('scanLogTable');
+            if (!tableBody) return;
+            let scanRecords = JSON.parse(localStorage.getItem('office_scans')) || [];
+            
+            if (scanRecords.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="2" style="text-align: center;">لا توجد سجلات حضور حتى الآن</td></tr>`;
+            } else {
+                tableBody.innerHTML = scanRecords.map(s => `
+                    <tr>
+                        <td><b>${s.salesName}</b></td>
+                        <td style="color: #38bdf8;">${s.dateFormatted}</td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        // استدعاء دالة عرض السجل عند تحميل الصفحة
+        document.addEventListener("DOMContentLoaded", () => {
+            renderScanLogs();
+        });
+    </script>
+</body>
+</html>
